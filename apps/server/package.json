@@ -1,0 +1,24 @@
+{
+  "name": "@arena/server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup src/index.ts --format esm --platform node",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@arena/shared": "workspace:*",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.13",
+    "tsx": "^4.20.3",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
