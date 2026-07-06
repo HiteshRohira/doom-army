@@ -60,7 +60,7 @@ function renderLanding(message = ""): void {
     <section class="panel">
       <p class="eyebrow">Two-player browser arena</p>
       <h1>Skyline<br />Skirmish</h1>
-      <p class="subtitle">Jetpacks, one loud SMG, and five minutes to settle the score. Connect an Xbox controller, create a room, and send the code to a rival.</p>
+      <p class="subtitle">Jetpacks, grenades, one loud SMG, and five minutes to settle the score. Connect an Xbox controller, create a room, and send the code to a rival.</p>
       <p class="controller-check">${gamepadApiAvailable ? "Controller API available — press any controller button to activate it." : "Controller API unavailable on this browser or connection."}</p>
       <div class="stack">
         <div>
@@ -132,7 +132,7 @@ function renderRoomOverlay(state: RoomSnapshot): void {
         <p class="eyebrow">Private room</p>
         <h2>Ready up</h2>
         <div class="room-code">
-          <div><span class="muted">Room code</span><br /><strong>${state.code}</strong></div>
+          <div><label for="room-code-display" class="muted">Room code</label><input id="room-code-display" class="room-code-display" value="${state.code}" readonly /></div>
           <button id="copy-code" class="secondary">Copy</button>
         </div>
         <div class="roster">
@@ -173,10 +173,32 @@ function bindRoomButtons(isReady: boolean, code: string): void {
   document.querySelector("#ready-button")?.addEventListener("click", () => socket.emit("player:ready", !isReady));
   document.querySelector("#leave-button")?.addEventListener("click", leaveRoom);
   document.querySelector("#copy-code")?.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(code);
     const button = document.querySelector<HTMLButtonElement>("#copy-code");
-    if (button) button.textContent = "Copied";
+    const source = document.querySelector<HTMLInputElement>("#room-code-display");
+    const copied = await copyText(code, source);
+    if (button) button.textContent = copied ? "Copied" : "Selected — Ctrl+C";
   });
+}
+
+async function copyText(value: string, source: HTMLInputElement | null): Promise<boolean> {
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(value);
+      return true;
+    } catch {
+      // Fall through to the selection path for browsers that block clipboard writes.
+    }
+  }
+
+  if (!source) return false;
+  source.focus();
+  source.select();
+  source.setSelectionRange(0, value.length);
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  }
 }
 
 function leaveRoom(): void {
@@ -212,5 +234,8 @@ function emptySnapshot(): RoomSnapshot {
     finishReason: null,
     players: [],
     projectiles: [],
+    grenades: [],
+    explosions: [],
+    pickups: [],
   };
 }

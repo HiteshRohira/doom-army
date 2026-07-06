@@ -1,6 +1,6 @@
 # Skyline Skirmish
 
-A two-player browser arena shooter inspired by the fast jetpack movement and free-aim combat of classic mobile arena games. The MVP includes private room codes, Xbox gamepad controls, one SMG, one original map, and server-authoritative five-minute deathmatches.
+A two-player browser arena shooter inspired by the fast jetpack movement and free-aim combat of classic mobile arena games. The MVP includes private room codes, Xbox gamepad controls, one SMG, grenades, spawning ammo pickups, one original map, and server-authoritative five-minute deathmatches.
 
 ## Run locally
 
@@ -19,13 +19,14 @@ Open [http://localhost:5173](http://localhost:5173) in two browser windows. Crea
 
 Xbox controls:
 
-- Left stick: move
-- A: jump/jetpack
-- Right stick: aim
+- Left stick: move and aim
+- Right stick up: boost
+- Right stick down: drop
 - Right trigger: fire
+- Right bumper: throw grenade
 - X: reload
 
-A keyboard/mouse fallback is available for development: A/D, Space, mouse aim/fire, and R.
+A keyboard/mouse fallback is available for development: A/D, W/S, mouse aim/fire, G, and R.
 
 ## Commands
 

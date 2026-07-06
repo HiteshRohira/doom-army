@@ -62,7 +62,7 @@ body {
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #4de2c5;
+  color: #d7aa62;
   font: 700 13px/1 Inter, sans-serif;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -98,7 +98,7 @@ h2 {
 
 .controller-check {
   margin: -14px 0 24px;
-  color: #4de2c5;
+  color: #d7aa62;
   font-size: 13px;
   font-weight: 700;
 }
@@ -126,8 +126,8 @@ input {
 }
 
 input:focus {
-  border-color: #4de2c5;
-  box-shadow: 0 0 0 3px rgba(77, 226, 197, 0.12);
+  border-color: #d7aa62;
+  box-shadow: 0 0 0 3px rgba(215, 170, 98, 0.14);
 }
 
 .room-code-input {
@@ -159,8 +159,8 @@ button {
   color: #06151b;
   border: 0;
   border-radius: 11px;
-  background: #4de2c5;
-  box-shadow: 0 8px 24px rgba(77, 226, 197, 0.16);
+  background: #d7aa62;
+  box-shadow: 0 8px 24px rgba(215, 170, 98, 0.17);
   cursor: pointer;
   font: 800 14px Inter, sans-serif;
   letter-spacing: 0.035em;
@@ -211,10 +211,22 @@ button.danger {
   background: #0a1928;
 }
 
-.room-code strong {
+.room-code-display {
+  width: 220px;
+  height: auto;
+  padding: 0;
   color: #f7c95c;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   font: 800 32px "Barlow Condensed", sans-serif;
   letter-spacing: 0.18em;
+  cursor: text;
+}
+
+.room-code-display:focus {
+  border: 0;
+  box-shadow: none;
 }
 
 .room-code button {
@@ -246,7 +258,7 @@ button.danger {
 }
 
 .player-row .ready {
-  color: #4de2c5;
+  color: #86b47b;
 }
 
 .error {
@@ -258,8 +270,9 @@ button.danger {
 
 .connection-pill {
   position: absolute;
+  top: 14px;
   right: 16px;
-  bottom: 14px;
+  bottom: auto;
   padding: 7px 11px;
   color: #9cb0bf;
   border: 1px solid rgba(170, 208, 231, 0.13);
@@ -273,7 +286,7 @@ button.danger {
 }
 
 .connection-pill.online {
-  color: #4de2c5;
+  color: #86b47b;
 }
 
 .result-score {

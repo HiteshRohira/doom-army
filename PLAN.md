@@ -14,6 +14,7 @@ The movement and combat should have the quick, floaty feel of Mini Militia—pla
 - Create-room and join-by-code flow
 - One original platform arena
 - One SMG-style weapon
+- Two grenades per spawn plus replenishing ammo and grenade pickups
 - Running, jumping, jetpack flight, aiming, shooting, damage, death, and respawning
 - Five-minute deathmatch, kill counter, timer, and result screen
 - Xbox gamepad support
@@ -25,7 +26,7 @@ The movement and combat should have the quick, floaty feel of Mini Militia—pla
 
 - Accounts, matchmaking, progression, cosmetics, chat, bots, and spectators
 - More than two players
-- Multiple maps or weapons, weapon pickups, grenades, and melee
+- Multiple maps or weapons, weapon pickups beyond ammo/grenades, and melee
 - Touch controls and mobile-browser optimization
 - Cross-room parties, persistent statistics, ranked play, and anti-cheat hardening
 - Advanced reconnect/match recovery
@@ -45,10 +46,10 @@ The server will be authoritative for room state, match time, movement validation
 
 Initial Xbox mapping:
 
-- Left stick: run and directional air movement
-- A: jump; hold while airborne to use the jetpack
-- Right stick: aim in 360 degrees
+- Left stick: run and aim in 360 degrees
+- Right stick up/down: jetpack boost and fast descent
 - Right trigger: fire
+- Right bumper: throw grenade
 - X: reload
 - Menu button: open the controls/options overlay; it does not pause the online match
 
@@ -61,7 +62,8 @@ Keyboard controls can be retained as a developer/debug fallback, but Xbox gamepa
 - Highest kill count at zero wins; equal scores produce a draw
 - Players respawn after 2 seconds at a safe spawn point
 - Brief spawn protection prevents immediate spawn kills
-- The SMG has automatic fire, a magazine, reload time, bullet spread, and unlimited reserve ammunition
+- The SMG has automatic fire, a magazine, reload time, bullet spread, and finite reserve ammunition replenished by map pickups
+- Players spawn with two grenades; ammunition and grenades respawn at changing map locations
 - Falling or leaving the arena counts as a death; the opposing player receives the kill only when they caused the recent damage
 - If a player disconnects, the remaining player sees a clear match-ended message
 

@@ -105,6 +105,9 @@ class Room {
         ready: this.players.get(player.id)?.ready ?? false,
       })),
       projectiles: this.game.getProjectiles(),
+      grenades: this.game.getGrenades(),
+      explosions: this.game.getExplosions(),
+      pickups: this.game.getPickups(),
     };
   }
 }
@@ -211,4 +214,3 @@ export class RoomManager {
     }
   }
 }
-

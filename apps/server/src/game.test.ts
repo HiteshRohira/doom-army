@@ -1,8 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { WEAPON } from "@arena/shared";
 import { GameSimulation } from "./game";
 
 describe("GameSimulation", () => {
+  afterEach(() => vi.restoreAllMocks());
+
   it("accelerates a player from authoritative input", () => {
     const game = new GameSimulation();
     game.addPlayer("p1", "Alpha", 0);
@@ -46,5 +48,46 @@ describe("GameSimulation", () => {
     expect(target.deaths).toBe(1);
     expect(attacker.kills).toBe(1);
   });
-});
 
+  it("launches with two grenades and throws only on a new RB press", () => {
+    const game = new GameSimulation();
+    game.addPlayer("p1", "Alpha", 0);
+    game.setInput("p1", { sequence: 1, aimX: 1, aimY: 0, grenade: true });
+
+    game.step(1 / 30);
+    game.step(1 / 30);
+
+    expect(game.players.get("p1")!.grenades).toBe(1);
+    expect(game.grenades).toHaveLength(1);
+  });
+
+  it("collects ammo and schedules the pickup at a new spawn", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.9);
+    const game = new GameSimulation();
+    game.addPlayer("p1", "Alpha", 0);
+    const player = game.players.get("p1")!;
+    const pickup = game.pickups.find((entry) => entry.kind === "ammo")!;
+    player.reserveAmmo = 0;
+    player.x = pickup.x;
+    player.y = pickup.y;
+
+    game.step(1 / 30);
+
+    expect(player.reserveAmmo).toBe(WEAPON.ammoPickupAmount);
+    expect(pickup.active).toBe(false);
+    expect(pickup.respawnMs).toBeGreaterThan(0);
+  });
+
+  it("uses right-stick-up input to produce upward boost", () => {
+    const game = new GameSimulation();
+    game.addPlayer("p1", "Alpha", 0);
+    const player = game.players.get("p1")!;
+    for (let tick = 0; tick < 10; tick += 1) game.step(1 / 30);
+    game.setInput("p1", { sequence: 1, moveX: 0, aimX: 1, aimY: 0, boostY: -1 });
+
+    game.step(1 / 30);
+
+    expect(player.vy).toBeLessThan(0);
+    expect(player.fuel).toBeLessThan(100);
+  });
+});
