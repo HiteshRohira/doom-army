@@ -3,9 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "pnpm --filter @arena/shared build && pnpm --parallel --filter @arena/server --filter @arena/client dev",
     "build": "pnpm -r build",
+    "start": "pnpm --filter @arena/server start",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"
   }
