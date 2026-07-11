@@ -9,21 +9,24 @@ import {
   sanitizeInput,
   SOLID_COVER,
   SPAWN_POINTS,
-  WEAPON,
+  WEAPONS,
   WORLD,
   type ExplosionSnapshot,
   type GrenadeSnapshot,
   type PickupKind,
+  type PlayerSlot,
   type PickupSnapshot,
   type PlayerInput,
   type PlayerSnapshot,
   type ProjectileSnapshot,
-} from "@arena/shared";
+  type WeaponKind,
+} from "@doom-army/shared";
 
 interface SimPlayer extends PlayerSnapshot {
   input: PlayerInput;
   previousBoosting: boolean;
   previousGrenade: boolean;
+  previousDash: boolean;
   fireCooldownMs: number;
   reloadRemainingMs: number;
   onGround: boolean;
@@ -57,7 +60,7 @@ export class GameSimulation {
     this.resetPickups();
   }
 
-  addPlayer(id: string, name: string, slot: 0 | 1): void {
+  addPlayer(id: string, name: string, slot: PlayerSlot, isBot = false): void {
     const spawn = SPAWN_POINTS[slot];
     this.players.set(id, {
       id,
@@ -71,8 +74,8 @@ export class GameSimulation {
       aimY: 0,
       health: 100,
       fuel: 100,
-      ammo: WEAPON.magazineSize,
-      reserveAmmo: WEAPON.startingReserve,
+      ammo: WEAPONS.pulse.magazineSize,
+      reserveAmmo: WEAPONS.pulse.startingReserve,
       grenades: GRENADE.maxCount,
       reloading: false,
       ready: false,
@@ -81,9 +84,13 @@ export class GameSimulation {
       invulnerableMs: MATCH.spawnProtectionMs,
       kills: 0,
       deaths: 0,
+      isBot,
+      weapon: "pulse",
+      dashCooldownMs: 0,
       input: { ...IDLE_INPUT, aimX: slot === 0 ? 1 : -1 },
       previousBoosting: false,
       previousGrenade: false,
+      previousDash: false,
       fireCooldownMs: 0,
       reloadRemainingMs: 0,
       onGround: false,
@@ -131,6 +138,7 @@ export class GameSimulation {
     for (const player of this.players.values()) {
       player.fireCooldownMs = Math.max(0, player.fireCooldownMs - dtMs);
       player.invulnerableMs = Math.max(0, player.invulnerableMs - dtMs);
+      player.dashCooldownMs = Math.max(0, player.dashCooldownMs - dtMs);
 
       if (!player.alive) {
         player.respawnMs = Math.max(0, player.respawnMs - dtMs);
@@ -156,6 +164,7 @@ export class GameSimulation {
         input: _input,
         previousBoosting: _boosting,
         previousGrenade: _grenade,
+        previousDash: _dash,
         fireCooldownMs: _cooldown,
         reloadRemainingMs: _reload,
         onGround: _ground,
@@ -207,6 +216,14 @@ export class GameSimulation {
     if (player.onGround) player.fuel = Math.min(100, player.fuel + MOVEMENT.fuelRechargePerSecond * dt);
 
     player.previousBoosting = boosting;
+    const dashPressed = input.dash;
+    if (dashPressed && !player.previousDash && player.dashCooldownMs === 0) {
+      const direction = Math.abs(input.moveX) > 0.15 ? Math.sign(input.moveX) : Math.sign(player.aimX) || 1;
+      player.vx = direction * 720;
+      player.vy *= 0.35;
+      player.dashCooldownMs = 1250;
+    }
+    player.previousDash = dashPressed;
     player.vy = Math.min(MOVEMENT.maxFallSpeed, player.vy + MOVEMENT.gravity * dt);
     this.moveAndCollide(player, dt);
   }
@@ -243,40 +260,39 @@ export class GameSimulation {
   }
 
   private updateWeapon(player: SimPlayer, dtMs: number): void {
+    const weapon = WEAPONS[player.weapon];
     if (player.reloadRemainingMs > 0) {
       player.reloadRemainingMs = Math.max(0, player.reloadRemainingMs - dtMs);
       player.reloading = player.reloadRemainingMs > 0;
       if (!player.reloading) {
-        const amount = Math.min(WEAPON.magazineSize - player.ammo, player.reserveAmmo);
+        const amount = Math.min(weapon.magazineSize - player.ammo, player.reserveAmmo);
         player.ammo += amount;
         player.reserveAmmo -= amount;
       }
       return;
     }
 
-    if (((player.input.reload && player.ammo < WEAPON.magazineSize) || player.ammo === 0) && player.reserveAmmo > 0) {
+    if (((player.input.reload && player.ammo < weapon.magazineSize) || player.ammo === 0) && player.reserveAmmo > 0) {
       player.reloading = true;
-      player.reloadRemainingMs = WEAPON.reloadMs;
+      player.reloadRemainingMs = weapon.reloadMs;
       return;
     }
 
     if (!player.input.firing || player.fireCooldownMs > 0 || player.ammo === 0) return;
 
-    const spread = (Math.random() * 2 - 1) * WEAPON.spreadRadians;
-    const angle = Math.atan2(player.aimY, player.aimX) + spread;
-    const aimX = Math.cos(angle);
-    const aimY = Math.sin(angle);
-    this.projectiles.push({
-      id: this.nextProjectileId++,
-      ownerId: player.id,
-      x: player.x + aimX * 38,
-      y: player.y - 5 + aimY * 15,
-      vx: aimX * WEAPON.bulletSpeed,
-      vy: aimY * WEAPON.bulletSpeed,
-      ageMs: 0,
-    });
+    for (let pellet = 0; pellet < weapon.pellets; pellet += 1) {
+      const spread = (Math.random() * 2 - 1) * weapon.spreadRadians;
+      const angle = Math.atan2(player.aimY, player.aimX) + spread;
+      const aimX = Math.cos(angle);
+      const aimY = Math.sin(angle);
+      this.projectiles.push({
+        id: this.nextProjectileId++, ownerId: player.id, weapon: player.weapon,
+        x: player.x + aimX * 38, y: player.y - 5 + aimY * 15,
+        vx: aimX * weapon.bulletSpeed, vy: aimY * weapon.bulletSpeed, ageMs: 0,
+      });
+    }
     player.ammo -= 1;
-    player.fireCooldownMs = WEAPON.fireIntervalMs;
+    player.fireCooldownMs = weapon.fireIntervalMs;
   }
 
   private updateGrenadeThrow(player: SimPlayer): void {
@@ -333,7 +349,11 @@ export class GameSimulation {
       }
 
       if (nearestT <= 1) {
-        if (hitPlayer) this.damage(hitPlayer, projectile.ownerId, WEAPON.damage);
+        if (hitPlayer) {
+          const weapon = WEAPONS[projectile.weapon];
+          this.damage(hitPlayer, projectile.ownerId, weapon.damage);
+          hitPlayer.vx += Math.sign(projectile.vx) * weapon.knockback;
+        }
         this.projectiles.splice(index, 1);
         continue;
       }
@@ -341,7 +361,7 @@ export class GameSimulation {
       projectile.x = endX;
       projectile.y = endY;
       if (
-        projectile.ageMs >= WEAPON.bulletLifetimeMs ||
+        projectile.ageMs >= WEAPONS[projectile.weapon].bulletLifetimeMs ||
         projectile.x < 0 ||
         projectile.x > WORLD.width ||
         projectile.y < 0 ||
@@ -423,11 +443,17 @@ export class GameSimulation {
       for (const player of this.players.values()) {
         if (!player.alive || Math.hypot(player.x - pickup.x, player.y - pickup.y) > 42) continue;
         if (pickup.kind === "ammo") {
-          if (player.reserveAmmo >= WEAPON.maxReserve) continue;
-          player.reserveAmmo = Math.min(WEAPON.maxReserve, player.reserveAmmo + WEAPON.ammoPickupAmount);
-        } else {
+          const weapon = WEAPONS[player.weapon];
+          if (player.reserveAmmo >= weapon.maxReserve) continue;
+          player.reserveAmmo = Math.min(weapon.maxReserve, player.reserveAmmo + weapon.ammoPickupAmount);
+        } else if (pickup.kind === "grenade") {
           if (player.grenades >= GRENADE.maxCount) continue;
           player.grenades += 1;
+        } else if (pickup.kind === "health") {
+          if (player.health >= 100) continue;
+          player.health = Math.min(100, player.health + 45);
+        } else {
+          this.equipWeapon(player, pickup.kind);
         }
         pickup.active = false;
         pickup.respawnMs = GRENADE.pickupRespawnMs;
@@ -438,7 +464,7 @@ export class GameSimulation {
 
   private resetPickups(): void {
     this.pickups.length = 0;
-    const kinds: PickupKind[] = ["ammo", "grenade", "ammo", "grenade"];
+    const kinds: PickupKind[] = ["ammo", "grenade", "health", "scatter", "rail", "ammo"];
     kinds.forEach((kind, index) => {
       const point = PICKUP_POINTS[(index * 3 + 1) % PICKUP_POINTS.length];
       this.pickups.push({ id: index + 1, kind, x: point.x, y: point.y, active: true, respawnMs: 0 });
@@ -451,6 +477,14 @@ export class GameSimulation {
     const point = available[Math.floor(Math.random() * available.length)] ?? PICKUP_POINTS[0];
     pickup.x = point.x;
     pickup.y = point.y;
+  }
+
+  private equipWeapon(player: SimPlayer, weapon: WeaponKind): void {
+    player.weapon = weapon;
+    player.ammo = WEAPONS[weapon].magazineSize;
+    player.reserveAmmo = WEAPONS[weapon].startingReserve;
+    player.reloading = false;
+    player.reloadRemainingMs = 0;
   }
 
   private damage(player: SimPlayer, attackerId: string, amount: number): void {
@@ -481,8 +515,9 @@ export class GameSimulation {
     player.vy = 0;
     player.health = 100;
     player.fuel = 100;
-    player.ammo = WEAPON.magazineSize;
-    player.reserveAmmo = WEAPON.startingReserve;
+    player.weapon = "pulse";
+    player.ammo = WEAPONS.pulse.magazineSize;
+    player.reserveAmmo = WEAPONS.pulse.startingReserve;
     player.grenades = GRENADE.maxCount;
     player.reloading = false;
     player.reloadRemainingMs = 0;
@@ -492,6 +527,8 @@ export class GameSimulation {
     player.input = { ...IDLE_INPUT, aimX: player.slot === 0 ? 1 : -1 };
     player.previousBoosting = false;
     player.previousGrenade = false;
+    player.previousDash = false;
+    player.dashCooldownMs = 0;
   }
 }
 

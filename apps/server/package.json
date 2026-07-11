@@ -1,5 +1,5 @@
 {
-  "name": "@arena/server",
+  "name": "@doom-army/server",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -11,7 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@arena/shared": "workspace:*",
+    "@doom-army/shared": "workspace:*",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 {
-  "name": "browser-arena",
+  "name": "doom-army",
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@11.7.0",
@@ -7,10 +7,10 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "pnpm --filter @arena/shared build && pnpm --parallel --filter @arena/server --filter @arena/client dev",
+    "dev": "pnpm --filter @doom-army/shared build && pnpm --parallel --filter @doom-army/server --filter @doom-army/client dev",
     "build": "pnpm -r build",
-    "start": "pnpm --filter @arena/server start",
+    "start": "pnpm --filter @doom-army/server start",
     "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm --filter @doom-army/shared build && pnpm -r typecheck"
   }
 }

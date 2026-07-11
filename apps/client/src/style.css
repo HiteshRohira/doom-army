@@ -1,8 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&family=Inter:wght@400;600;700;800&display=swap");
 
 :root {
   color: #f7fbff;
-  background: #07111f;
+  background: #050b14;
   font-family: Inter, system-ui, sans-serif;
   font-synthesis: none;
 }
@@ -22,8 +22,8 @@ body,
 
 body {
   background:
-    radial-gradient(circle at 50% 10%, rgba(60, 144, 180, 0.22), transparent 45%),
-    #07111f;
+    radial-gradient(circle at 50% 10%, rgba(72, 229, 194, 0.16), transparent 42%),
+    #050b14;
 }
 
 #game-root {
@@ -52,17 +52,20 @@ body {
 .panel {
   width: min(560px, 100%);
   padding: 34px;
-  border: 1px solid rgba(188, 231, 255, 0.18);
-  border-radius: 22px;
-  background: rgba(8, 20, 35, 0.92);
+  border: 1px solid rgba(97, 240, 208, 0.23);
+  border-radius: 4px;
+  background: linear-gradient(145deg, rgba(9, 21, 36, 0.97), rgba(5, 12, 22, 0.96));
   box-shadow: 0 24px 90px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(18px);
   pointer-events: auto;
 }
 
+.landing-panel { width: min(620px, 100%); position: relative; overflow: hidden; }
+.landing-panel::before { content: ""; position: absolute; width: 180px; height: 180px; right: -75px; top: -75px; border: 1px solid rgba(90,240,208,.15); border-radius: 50%; box-shadow: 0 0 70px rgba(90,240,208,.08); }
+
 .eyebrow {
   margin: 0 0 8px;
-  color: #d7aa62;
+  color: #5af0d0;
   font: 700 13px/1 Inter, sans-serif;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -79,7 +82,10 @@ h2 {
 h1 {
   font-size: clamp(48px, 8vw, 78px);
   line-height: 0.86;
+  text-shadow: 5px 5px 0 #122e41;
 }
+
+h1 em { color: #5af0d0; font-style: italic; }
 
 h2 {
   font-size: 46px;
@@ -96,9 +102,13 @@ h2 {
   max-width: 46ch;
 }
 
+.feature-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; margin: -8px 0 24px; border: 1px solid rgba(90,240,208,.13); background: rgba(90,240,208,.13); }
+.feature-strip span { padding: 10px 12px; color: #8ba7b6; background: #091522; font: 700 11px Inter; letter-spacing: .08em; text-transform: uppercase; }
+.feature-strip b { margin-right: 5px; color: #5af0d0; font-size: 17px; }
+
 .controller-check {
   margin: -14px 0 24px;
-  color: #d7aa62;
+  color: #76a8b9;
   font-size: 13px;
   font-weight: 700;
 }
@@ -126,8 +136,8 @@ input {
 }
 
 input:focus {
-  border-color: #d7aa62;
-  box-shadow: 0 0 0 3px rgba(215, 170, 98, 0.14);
+  border-color: #5af0d0;
+  box-shadow: 0 0 0 3px rgba(90, 240, 208, 0.14);
 }
 
 .room-code-input {
@@ -159,14 +169,19 @@ button {
   color: #06151b;
   border: 0;
   border-radius: 11px;
-  background: #d7aa62;
-  box-shadow: 0 8px 24px rgba(215, 170, 98, 0.17);
+  border-radius: 4px;
+  background: #5af0d0;
+  box-shadow: 0 8px 24px rgba(90, 240, 208, 0.15);
   cursor: pointer;
   font: 800 14px Inter, sans-serif;
   letter-spacing: 0.035em;
   text-transform: uppercase;
   transition: transform 120ms ease, filter 120ms ease;
 }
+
+.mode-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; }
+.mode-grid button { min-height: 66px; text-align: left; }
+.button-kicker { display: block; margin-bottom: 4px; font-size: 9px; letter-spacing: .16em; opacity: .65; }
 
 button:hover {
   filter: brightness(1.08);
@@ -215,7 +230,7 @@ button.danger {
   width: 220px;
   height: auto;
   padding: 0;
-  color: #f7c95c;
+  color: #5af0d0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -261,6 +276,9 @@ button.danger {
   color: #86b47b;
 }
 
+.controls-card { display: grid; gap: 5px; margin-top: 16px; padding: 14px 15px; border-left: 3px solid #5af0d0; color: #8da7b5; background: rgba(90,240,208,.055); font-size: 12px; }
+.controls-card b { color: #5af0d0; font-size: 10px; letter-spacing: .15em; }
+
 .error {
   min-height: 20px;
   margin: 12px 0 0;
@@ -268,30 +286,9 @@ button.danger {
   font-size: 14px;
 }
 
-.connection-pill {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  bottom: auto;
-  padding: 7px 11px;
-  color: #9cb0bf;
-  border: 1px solid rgba(170, 208, 231, 0.13);
-  border-radius: 999px;
-  background: rgba(4, 12, 23, 0.78);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  pointer-events: none;
-}
-
-.connection-pill.online {
-  color: #86b47b;
-}
-
 .result-score {
   margin: 14px 0 4px;
-  color: #f7c95c;
+  color: #5af0d0;
   font: 800 54px "Barlow Condensed", sans-serif;
 }
 
@@ -303,4 +300,5 @@ button.danger {
   .form-row {
     grid-template-columns: 1fr;
   }
+  .mode-grid { grid-template-columns: 1fr; }
 }

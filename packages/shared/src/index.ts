@@ -6,11 +6,14 @@ export const WORLD = {
 } as const;
 
 export const MATCH = {
-  durationMs: 5 * 60 * 1000,
+  durationMs: 3 * 60 * 1000,
+  scoreLimit: 12,
   countdownMs: 3000,
   respawnMs: 2000,
   spawnProtectionMs: 1200,
   tickRate: 30,
+  minPlayers: 2,
+  maxPlayers: 5,
 } as const;
 
 export const MOVEMENT = {
@@ -27,25 +30,22 @@ export const MOVEMENT = {
   fuelRechargePerSecond: 52,
 } as const;
 
-export const WEAPON = {
-  magazineSize: 30,
-  startingReserve: 60,
-  maxReserve: 150,
-  ammoPickupAmount: 45,
-  damage: 20,
-  fireIntervalMs: 95,
-  reloadMs: 1350,
-  bulletSpeed: 1250,
-  bulletLifetimeMs: 1300,
-  spreadRadians: 0.025,
+export type WeaponKind = "pulse" | "scatter" | "rail";
+
+export const WEAPONS = {
+  pulse: { label: "VX-9 PULSE", magazineSize: 28, startingReserve: 84, maxReserve: 168, ammoPickupAmount: 42, damage: 16, pellets: 1, fireIntervalMs: 88, reloadMs: 1150, bulletSpeed: 1480, bulletLifetimeMs: 1050, spreadRadians: 0.022, knockback: 32 },
+  scatter: { label: "BREACHER", magazineSize: 7, startingReserve: 28, maxReserve: 56, ammoPickupAmount: 14, damage: 13, pellets: 7, fireIntervalMs: 610, reloadMs: 1450, bulletSpeed: 1180, bulletLifetimeMs: 520, spreadRadians: 0.16, knockback: 90 },
+  rail: { label: "LONGBOW", magazineSize: 4, startingReserve: 16, maxReserve: 32, ammoPickupAmount: 8, damage: 58, pellets: 1, fireIntervalMs: 820, reloadMs: 1750, bulletSpeed: 2300, bulletLifetimeMs: 900, spreadRadians: 0.004, knockback: 150 },
 } as const;
+
+export const WEAPON = WEAPONS.pulse;
 
 export const GRENADE = {
   maxCount: 2,
   fuseMs: 1650,
   throwSpeed: 650,
   radius: 135,
-  maxDamage: 85,
+  maxDamage: 200,
   pickupRespawnMs: 6500,
 } as const;
 
@@ -59,12 +59,16 @@ export interface Platform {
 
 export const PLATFORMS: Platform[] = [
   { x: 0, y: 822, width: 1600, height: 78, kind: "ground" },
-  { x: 72, y: 646, width: 360, height: 30, kind: "platform" },
-  { x: 1168, y: 646, width: 360, height: 30, kind: "platform" },
-  { x: 594, y: 590, width: 412, height: 30, kind: "platform" },
-  { x: 224, y: 414, width: 310, height: 30, kind: "platform" },
-  { x: 1066, y: 414, width: 310, height: 30, kind: "platform" },
-  { x: 650, y: 246, width: 300, height: 30, kind: "platform" },
+  { x: 54, y: 664, width: 310, height: 26, kind: "platform" },
+  { x: 1236, y: 664, width: 310, height: 26, kind: "platform" },
+  { x: 532, y: 650, width: 220, height: 26, kind: "platform" },
+  { x: 848, y: 650, width: 220, height: 26, kind: "platform" },
+  { x: 220, y: 454, width: 284, height: 26, kind: "platform" },
+  { x: 1096, y: 454, width: 284, height: 26, kind: "platform" },
+  { x: 640, y: 398, width: 320, height: 26, kind: "platform" },
+  { x: 68, y: 270, width: 238, height: 26, kind: "platform" },
+  { x: 1294, y: 270, width: 238, height: 26, kind: "platform" },
+  { x: 650, y: 180, width: 300, height: 26, kind: "platform" },
 ];
 
 export interface SolidCover {
@@ -76,10 +80,11 @@ export interface SolidCover {
 }
 
 export const SOLID_COVER: SolidCover[] = [
-  { x: 742, y: 754, width: 116, height: 68, kind: "rock" },
-  { x: 1280, y: 586, width: 90, height: 60, kind: "rock" },
-  { x: 742, y: 534, width: 82, height: 56, kind: "rock" },
-  { x: 1122, y: 366, width: 74, height: 48, kind: "rock" },
+  { x: 760, y: 742, width: 80, height: 80, kind: "rock" },
+  { x: 278, y: 606, width: 70, height: 58, kind: "rock" },
+  { x: 1252, y: 606, width: 70, height: 58, kind: "rock" },
+  { x: 725, y: 342, width: 70, height: 56, kind: "rock" },
+  { x: 805, y: 342, width: 70, height: 56, kind: "rock" },
 ];
 
 export interface BushDecoration {
@@ -103,16 +108,19 @@ export const BUSHES: BushDecoration[] = [
 
 export const PICKUP_POINTS = [
   { x: 96, y: 782 },
-  { x: 350, y: 604 },
+  { x: 210, y: 624 },
   { x: 530, y: 782 },
-  { x: 650, y: 548 },
-  { x: 940, y: 548 },
+  { x: 642, y: 610 },
+  { x: 958, y: 610 },
   { x: 1070, y: 782 },
-  { x: 1240, y: 604 },
+  { x: 1390, y: 624 },
   { x: 1504, y: 782 },
-  { x: 480, y: 372 },
-  { x: 1286, y: 372 },
-  { x: 800, y: 204 },
+  { x: 362, y: 414 },
+  { x: 1238, y: 414 },
+  { x: 800, y: 358 },
+  { x: 187, y: 230 },
+  { x: 1413, y: 230 },
+  { x: 800, y: 140 },
 ] as const;
 
 export const SPAWN_POINTS = [
@@ -120,9 +128,11 @@ export const SPAWN_POINTS = [
   { x: 1430, y: 770 },
   { x: 260, y: 594 },
   { x: 1340, y: 594 },
+  { x: 800, y: 130 },
 ] as const;
 
 export type RoomPhase = "lobby" | "countdown" | "playing" | "finished";
+export type PlayerSlot = 0 | 1 | 2 | 3 | 4;
 
 export interface PlayerInput {
   sequence: number;
@@ -133,6 +143,7 @@ export interface PlayerInput {
   firing: boolean;
   reload: boolean;
   grenade: boolean;
+  dash: boolean;
 }
 
 export const IDLE_INPUT: PlayerInput = {
@@ -144,12 +155,13 @@ export const IDLE_INPUT: PlayerInput = {
   firing: false,
   reload: false,
   grenade: false,
+  dash: false,
 };
 
 export interface PlayerSnapshot {
   id: string;
   name: string;
-  slot: 0 | 1;
+  slot: PlayerSlot;
   x: number;
   y: number;
   vx: number;
@@ -168,6 +180,9 @@ export interface PlayerSnapshot {
   invulnerableMs: number;
   kills: number;
   deaths: number;
+  isBot: boolean;
+  weapon: WeaponKind;
+  dashCooldownMs: number;
 }
 
 export interface ProjectileSnapshot {
@@ -177,6 +192,7 @@ export interface ProjectileSnapshot {
   y: number;
   vx: number;
   vy: number;
+  weapon: WeaponKind;
 }
 
 export interface GrenadeSnapshot {
@@ -197,7 +213,7 @@ export interface ExplosionSnapshot {
   ageMs: number;
 }
 
-export type PickupKind = "ammo" | "grenade";
+export type PickupKind = "ammo" | "grenade" | "health" | "scatter" | "rail";
 
 export interface PickupSnapshot {
   id: number;
@@ -250,5 +266,6 @@ export function sanitizeInput(value: Partial<PlayerInput>): PlayerInput {
     firing: value.firing === true,
     reload: value.reload === true,
     grenade: value.grenade === true,
+    dash: value.dash === true,
   };
 }

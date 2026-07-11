@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { WEAPON } from "@arena/shared";
+import { WEAPON } from "@doom-army/shared";
 import { GameSimulation } from "./game";
 
 describe("GameSimulation", () => {
@@ -28,7 +28,7 @@ describe("GameSimulation", () => {
     expect(game.players.get("p1")!.ammo).toBe(WEAPON.magazineSize - 1);
   });
 
-  it("awards a kill after five SMG hits", () => {
+  it("awards a kill after sustained pulse-rifle hits", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.5);
     const game = new GameSimulation();
     game.addPlayer("p1", "Alpha", 0);
@@ -49,7 +49,7 @@ describe("GameSimulation", () => {
     expect(attacker.kills).toBe(1);
   });
 
-  it("launches with two grenades and throws only on a new RB press", () => {
+  it("launches with two grenades and throws only on a new grenade press", () => {
     const game = new GameSimulation();
     game.addPlayer("p1", "Alpha", 0);
     game.setInput("p1", { sequence: 1, aimX: 1, aimY: 0, grenade: true });
@@ -78,7 +78,7 @@ describe("GameSimulation", () => {
     expect(pickup.respawnMs).toBeGreaterThan(0);
   });
 
-  it("uses right-stick-up input to produce upward boost", () => {
+  it("uses upward boost input to produce upward boost", () => {
     const game = new GameSimulation();
     game.addPlayer("p1", "Alpha", 0);
     const player = game.players.get("p1")!;
@@ -89,5 +89,31 @@ describe("GameSimulation", () => {
 
     expect(player.vy).toBeLessThan(0);
     expect(player.fuel).toBeLessThan(100);
+  });
+
+  it("equips a weapon pickup with its own magazine", () => {
+    const game = new GameSimulation();
+    game.addPlayer("p1", "Alpha", 0);
+    const player = game.players.get("p1")!;
+    const pickup = game.pickups.find((entry) => entry.kind === "scatter")!;
+    player.x = pickup.x;
+    player.y = pickup.y;
+
+    game.step(1 / 30);
+
+    expect(player.weapon).toBe("scatter");
+    expect(player.ammo).toBe(7);
+  });
+
+  it("executes one dash per cooldown window", () => {
+    const game = new GameSimulation();
+    game.addPlayer("p1", "Alpha", 0);
+    const player = game.players.get("p1")!;
+    game.setInput("p1", { sequence: 1, moveX: 1, aimX: 1, aimY: 0, dash: true });
+
+    game.step(1 / 30);
+
+    expect(player.vx).toBeGreaterThan(600);
+    expect(player.dashCooldownMs).toBeGreaterThan(1000);
   });
 });

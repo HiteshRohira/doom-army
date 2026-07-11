@@ -10,7 +10,7 @@ importers:
 
   apps/client:
     dependencies:
-      '@arena/shared':
+      '@doom-army/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       phaser:
@@ -32,7 +32,7 @@ importers:
 
   apps/server:
     dependencies:
-      '@arena/shared':
+      '@doom-army/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       socket.io:

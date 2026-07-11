@@ -1,12 +1,11 @@
 import Phaser from "phaser";
 import { io } from "socket.io-client";
-import type { PlayerInput, RoomAck, RoomSnapshot } from "@arena/shared";
-import { WORLD } from "@arena/shared";
+import type { PlayerInput, RoomAck, RoomSnapshot } from "@doom-army/shared";
+import { MATCH, WORLD } from "@doom-army/shared";
 import { ArenaScene } from "./game/ArenaScene";
 import "./style.css";
 
 const overlay = document.querySelector<HTMLDivElement>("#overlay")!;
-const connectionPill = document.querySelector<HTMLDivElement>("#connection-pill")!;
 const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin;
 const socket = io(serverUrl, { transports: ["websocket", "polling"] });
 const gamepadApiAvailable = typeof navigator.getGamepads === "function";
@@ -14,7 +13,7 @@ const gamepadApiAvailable = typeof navigator.getGamepads === "function";
 let playerId: string | null = null;
 let snapshot: RoomSnapshot | null = null;
 let lastOverlayKey = "";
-let callsign = localStorage.getItem("arena-callsign") ?? "";
+let callsign = localStorage.getItem("doom-army-callsign") ?? "";
 
 const arenaScene = new ArenaScene((input: PlayerInput) => socket.emit("player:input", input));
 new Phaser.Game({
@@ -35,14 +34,11 @@ new Phaser.Game({
 });
 
 socket.on("connect", () => {
-  connectionPill.textContent = "Server connected";
-  connectionPill.classList.add("online");
   if (!playerId) renderLanding();
 });
 
 socket.on("disconnect", () => {
-  connectionPill.textContent = "Server disconnected";
-  connectionPill.classList.remove("online");
+  arenaScene.setLatencyMs(null);
 });
 
 socket.on("room:state", (next: RoomSnapshot) => {
@@ -52,22 +48,27 @@ socket.on("room:state", (next: RoomSnapshot) => {
 });
 
 renderLanding();
+setInterval(measureLatency, 2500);
 
 function renderLanding(message = ""): void {
   lastOverlayKey = "landing";
   overlay.classList.remove("hidden");
   overlay.innerHTML = `
-    <section class="panel">
-      <p class="eyebrow">Two-player browser arena</p>
-      <h1>Skyline<br />Skirmish</h1>
-      <p class="subtitle">Jetpacks, grenades, one loud SMG, and five minutes to settle the score. Connect an Xbox controller, create a room, and send the code to a rival.</p>
-      <p class="controller-check">${gamepadApiAvailable ? "Controller API available — press any controller button to activate it." : "Controller API unavailable on this browser or connection."}</p>
+    <section class="panel landing-panel">
+      <p class="eyebrow">Neon jetpack deathmatch</p>
+      <h1>Skyline<br /><em>Skirmish</em></h1>
+      <p class="subtitle">A fast desktop arena shooter built around vertical control, weapon routes, air dashes, and brutal three-minute score races.</p>
+      <div class="feature-strip"><span><b>3</b> weapons</span><span><b>12</b> to win</span><span><b>${MATCH.maxPlayers}</b> players</span></div>
+      <p class="controller-check">${gamepadApiAvailable ? "Desktop controls ready · Mouse + keyboard or twin-stick gamepad" : "Desktop controls · Mouse + keyboard"}</p>
       <div class="stack">
         <div>
           <label for="callsign">Callsign</label>
           <input id="callsign" maxlength="16" autocomplete="nickname" placeholder="Player" value="${escapeHtml(callsign)}" />
         </div>
-        <button id="create-room">Create private room</button>
+        <div class="mode-grid">
+          <button id="practice-room"><span class="button-kicker">Instant action</span>Fight 2 bots</button>
+          <button id="create-room" class="secondary"><span class="button-kicker">Online</span>Create room</button>
+        </div>
       </div>
       <div class="divider"></div>
       <form id="join-form">
@@ -82,6 +83,7 @@ function renderLanding(message = ""): void {
 
   const callsignInput = document.querySelector<HTMLInputElement>("#callsign")!;
   const createButton = document.querySelector<HTMLButtonElement>("#create-room")!;
+  const practiceButton = document.querySelector<HTMLButtonElement>("#practice-room")!;
   const joinForm = document.querySelector<HTMLFormElement>("#join-form")!;
   const roomInput = document.querySelector<HTMLInputElement>("#room-code")!;
 
@@ -90,6 +92,16 @@ function renderLanding(message = ""): void {
     createButton.disabled = true;
     socket.timeout(5000).emit("room:create", { name: callsign }, (error: Error | null, result: RoomAck) => {
       createButton.disabled = false;
+      if (error) return showLandingError("The server did not respond. Try again.");
+      handleRoomAck(result);
+    });
+  });
+
+  practiceButton.addEventListener("click", () => {
+    storeCallsign(callsignInput.value);
+    practiceButton.disabled = true;
+    socket.timeout(5000).emit("room:practice", { name: callsign }, (error: Error | null, result: RoomAck) => {
+      practiceButton.disabled = false;
       if (error) return showLandingError("The server did not respond. Try again.");
       handleRoomAck(result);
     });
@@ -115,6 +127,7 @@ function handleRoomAck(result: RoomAck): void {
 }
 
 function renderRoomOverlay(state: RoomSnapshot): void {
+  document.body.classList.toggle("in-match", state.phase === "playing" || state.phase === "countdown");
   const local = state.players.find((player) => player.id === playerId);
   const key = `${state.phase}:${state.players.map((player) => `${player.id}:${player.ready}:${player.kills}`).join("|")}:${state.winnerId}:${state.finishReason}`;
   if (key === lastOverlayKey) return;
@@ -136,10 +149,11 @@ function renderRoomOverlay(state: RoomSnapshot): void {
           <button id="copy-code" class="secondary">Copy</button>
         </div>
         <div class="roster">
-          ${state.players.map((player) => `<div class="player-row"><span>${escapeHtml(player.name)}${player.id === playerId ? " · You" : ""}</span><span class="${player.ready ? "ready" : ""}">${player.ready ? "Ready" : "Not ready"}</span></div>`).join("")}
-          ${state.players.length < 2 ? '<div class="player-row"><span class="muted">Waiting for rival…</span><span>Open</span></div>' : ""}
+          ${state.players.map((player) => `<div class="player-row"><span>${escapeHtml(player.name)}${player.id === playerId ? " · You" : player.isBot ? " · Bot" : ""}</span><span class="${player.ready ? "ready" : ""}">${player.ready ? "Ready" : "Not ready"}</span></div>`).join("")}
+          ${Array.from({ length: MATCH.maxPlayers - state.players.length }, () => '<div class="player-row"><span class="muted">Open slot</span><span>Open</span></div>').join("")}
         </div>
-        <p class="muted">Both players must be ready. Press any button on the Xbox controller once so the browser can detect it.</p>
+        <div class="controls-card"><b>COMBAT LOADOUT</b><span>Pulse rifle · Breacher shotgun · Longbow rail rifle</span><span>Mouse aim/fire · Shift dash · G grenade · R reload</span></div>
+        <p class="muted">${state.players.length < MATCH.minPlayers ? `Need at least ${MATCH.minPlayers} players.` : "All players must be ready."}</p>
         <div class="actions">
           <button id="ready-button">${local?.ready ? "Cancel ready" : "Ready"}</button>
           <button id="leave-button" class="danger">Leave</button>
@@ -151,7 +165,7 @@ function renderRoomOverlay(state: RoomSnapshot): void {
 
   const winner = state.players.find((player) => player.id === state.winnerId);
   const sorted = [...state.players].sort((a, b) => b.kills - a.kills);
-  const outcome = state.winnerId === null ? "Draw" : state.winnerId === playerId ? "Victory" : `${winner?.name ?? "Rival"} wins`;
+  const outcome = state.winnerId === null ? "Draw" : state.winnerId === playerId ? "Victory" : `${winner?.name ?? "Opponent"} wins`;
   overlay.innerHTML = `
     <section class="panel">
       <p class="eyebrow">Match complete</p>
@@ -162,7 +176,7 @@ function renderRoomOverlay(state: RoomSnapshot): void {
         ${sorted.map((player) => `<div class="player-row"><span>${escapeHtml(player.name)}${player.id === playerId ? " · You" : ""}</span><span>${player.kills} kills</span></div>`).join("")}
       </div>
       <div class="actions">
-        ${state.players.length === 2 ? `<button id="ready-button">${local?.ready ? "Waiting for rival…" : "Ready for rematch"}</button>` : ""}
+        ${state.players.length >= MATCH.minPlayers ? `<button id="ready-button">${local?.ready ? "Waiting for players..." : "Ready for rematch"}</button>` : ""}
         <button id="leave-button" class="danger">Leave room</button>
       </div>
     </section>`;
@@ -206,12 +220,26 @@ function leaveRoom(): void {
   playerId = null;
   snapshot = null;
   arenaScene.setNetworkState(emptySnapshot(), null);
+  document.body.classList.remove("in-match");
   renderLanding();
 }
 
 function storeCallsign(value: string): void {
   callsign = value.trim().slice(0, 16);
-  localStorage.setItem("arena-callsign", callsign);
+  localStorage.setItem("doom-army-callsign", callsign);
+}
+
+function measureLatency(): void {
+  if (!socket.connected) {
+    arenaScene.setLatencyMs(null);
+    return;
+  }
+
+  const startedAt = performance.now();
+  socket.timeout(2000).emit("net:ping", (error: Error | null) => {
+    if (error) return arenaScene.setLatencyMs(null);
+    arenaScene.setLatencyMs(performance.now() - startedAt);
+  });
 }
 
 function showLandingError(message: string): void {

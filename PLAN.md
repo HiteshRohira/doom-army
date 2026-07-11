@@ -1,8 +1,8 @@
-# Browser Arena MVP Plan
+# Doom Army MVP Plan
 
 ## Product goal
 
-Build a browser-based 2D arena shooter for exactly two remote players. One player creates a private room, shares its code, and the second player joins. Both use Xbox-compatible gamepads in a five-minute deathmatch; the player with the most kills wins.
+Build a browser-based 2D arena shooter for two to five remote players. One player creates a private room, shares its code, and the others join. Players use Xbox-compatible gamepads in a five-minute deathmatch; the player with the most kills wins.
 
 The movement and combat should have the quick, floaty feel of Mini Militia—platform movement, jetpack flight, free aiming, and rapid gunfire—while using an original name, characters, map, interface, and artwork.
 
@@ -10,7 +10,7 @@ The movement and combat should have the quick, floaty feel of Mini Militia—pla
 
 ### Included
 
-- Two players per room, with no bots or spectators
+- Up to five players per room, with no bots or spectators
 - Create-room and join-by-code flow
 - One original platform arena
 - One SMG-style weapon
@@ -25,7 +25,6 @@ The movement and combat should have the quick, floaty feel of Mini Militia—pla
 ### Deferred
 
 - Accounts, matchmaking, progression, cosmetics, chat, bots, and spectators
-- More than two players
 - Multiple maps or weapons, weapon pickups beyond ammo/grenades, and melee
 - Touch controls and mobile-browser optimization
 - Cross-room parties, persistent statistics, ranked play, and anti-cheat hardening
@@ -46,10 +45,9 @@ The server will be authoritative for room state, match time, movement validation
 
 Initial Xbox mapping:
 
-- Left stick: run and aim in 360 degrees
-- Right stick up/down: jetpack boost and fast descent
-- Right trigger: fire
-- Right bumper: throw grenade
+- Left stick: run, aim, jetpack boost, and fast descent
+- A: fire
+- B: throw grenade
 - X: reload
 - Menu button: open the controls/options overlay; it does not pause the online match
 
@@ -57,7 +55,7 @@ Keyboard controls can be retained as a developer/debug fallback, but Xbox gamepa
 
 ## Initial game rules
 
-- Match begins when both connected players confirm they are ready
+- Match begins when at least two players are connected and all connected players confirm they are ready
 - Match length: 5:00
 - Highest kill count at zero wins; equal scores produce a draw
 - Players respawn after 2 seconds at a safe spawn point
@@ -65,7 +63,7 @@ Keyboard controls can be retained as a developer/debug fallback, but Xbox gamepa
 - The SMG has automatic fire, a magazine, reload time, bullet spread, and finite reserve ammunition replenished by map pickups
 - Players spawn with two grenades; ammunition and grenades respawn at changing map locations
 - Falling or leaving the arena counts as a death; the opposing player receives the kill only when they caused the recent damage
-- If a player disconnects, the remaining player sees a clear match-ended message
+- If disconnections leave fewer than two players, the remaining player sees a clear match-ended message
 
 Exact movement speed, jetpack fuel, damage, fire rate, and respawn values will live in shared configuration so they can be tuned without rewriting game logic.
 
@@ -75,7 +73,7 @@ The MVP does not need externally commissioned art. We can build its first visual
 
 Assets needed:
 
-- Two color variants of one original soldier character
+- Five color variants of one original soldier character
 - A simple SMG silhouette, muzzle flash, bullets/tracers, and hit particles
 - Ground, wall, and platform tiles for one arena
 - A background with two or three parallax layers
@@ -115,7 +113,7 @@ The target is a readable, energetic comic-military style with chunky silhouettes
 - Add interpolation, local movement prediction, reconciliation, and latency display
 - Validate fire rate, movement bounds, hits, deaths, and scoring server-side
 
-**Exit:** two browsers on separate machines can join the same room and play a synchronized match under ordinary internet latency.
+**Exit:** browsers on separate machines can join the same room and play a synchronized match under ordinary internet latency.
 
 ### 4. Match flow
 
@@ -135,15 +133,15 @@ The target is a readable, energetic comic-military style with chunky silhouettes
 - Add network-condition tests, gameplay-rule tests, and lobby end-to-end tests
 - Deploy the static client and a regionally close WebSocket server with HTTPS
 
-**Exit:** a shareable public URL supports a stable two-player session from room creation through results.
+**Exit:** a shareable public URL supports a stable five-player session from room creation through results.
 
 ## Acceptance criteria
 
 - A player can create a room and copy a short code
 - A second player can join that room from another computer
-- A third player cannot enter the room
-- Both Xbox controllers are detected and all required actions work
-- Both players see substantially consistent movement, shots, health, kills, and time
+- A sixth player cannot enter the room
+- Xbox controllers are detected and all required actions work
+- Players see substantially consistent movement, shots, health, kills, and time
 - The match ends after five minutes and reports the correct winner or draw
 - Deaths respawn correctly and do not corrupt the score
 - The room closes cleanly after players leave

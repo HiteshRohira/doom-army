@@ -1,6 +1,6 @@
 # Skyline Skirmish
 
-A two-player browser arena shooter inspired by the fast jetpack movement and free-aim combat of classic mobile arena games. The MVP includes private room codes, Xbox gamepad controls, one SMG, grenades, spawning ammo pickups, one original map, and server-authoritative five-minute deathmatches.
+A desktop browser arena shooter built around fast jetpack movement, air dashes, free-aim combat, weapon routing, grenades, and short score-limit matches. Play instantly against server-controlled bots or create a private room for up to five players.
 
 ## Run locally
 
@@ -11,22 +11,28 @@ pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in two browser windows. Create a room in one, join with the code in the other, and ready both players.
+Open [http://localhost:5173](http://localhost:5173) in two browser windows. Create a room in one, join with the code in the other, and ready all connected players.
 
-### Test from another computer on the local network
+### Test from another computer
 
-`pnpm dev` exposes the Vite client on the machine's LAN interfaces. Keep the server terminal running, find the host machine's local IP, and open `http://HOST_IP:5173` on the second computer. Both computers must be on the same network; allow incoming Node.js connections if the host firewall prompts.
+`pnpm dev` exposes the Vite client on the machine's LAN interfaces for local testing. For public play, deploy the built app to an HTTPS host such as Railway and share that public URL; the server serves the client and Socket.IO from the same origin by default.
 
 Xbox controls:
 
-- Left stick: move and aim
-- Right stick up: boost
-- Right stick down: drop
-- Right trigger: fire
-- Right bumper: throw grenade
+- Left stick: move, boost, and drop
+- Right stick: aim
+- Right trigger or A: fire
+- Left bumper: dash
+- B: throw grenade
 - X: reload
 
-A keyboard/mouse fallback is available for development: A/D, W/S, mouse aim/fire, G, and R.
+Keyboard and mouse: A/D move, W/S jet/drop, mouse aim/fire, Shift dash, G grenade, and R reload.
+
+Weapons:
+
+- VX-9 Pulse: accurate automatic rifle
+- Breacher: close-range seven-pellet shotgun
+- Longbow: slow, high-damage rail rifle
 
 ## Commands
 
@@ -37,4 +43,4 @@ pnpm test      # unit tests
 pnpm typecheck # TypeScript validation
 ```
 
-The client runs on port 5173 and proxies multiplayer traffic to the server on port 3001. For deployment, configure `VITE_SERVER_URL` on the client and `CLIENT_ORIGIN`/`PORT` on the server.
+The local client runs on port 5173 and proxies multiplayer traffic to the server on port 3001. For same-origin deployment, configure `PORT` on the server; set `VITE_SERVER_URL` and `CLIENT_ORIGIN` only when the client and server are hosted on different origins.
